@@ -10,7 +10,16 @@ function runCommand(command: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     execFile(command, args, { encoding: "utf8" }, (error, stdout) => {
       if (error) {
-        reject(error);
+        const code = (error as NodeJS.ErrnoException).code;
+
+        if (code === "ENOENT") {
+          reject(
+            new Error(`Required system command "${command}" was not found.`)
+          );
+          return;
+        }
+
+        reject(new Error(`Command "${command}" failed: ${error.message}`));
         return;
       }
 
